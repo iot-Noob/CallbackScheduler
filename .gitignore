@@ -1,0 +1,82 @@
+# Arduino specific
+*.elf
+*.bin
+*.eep
+*.hex
+*.a
+*.lst
+*.lss
+*.sym
+*.map
+*.tmp
+*.d
+*.o
+*.core
+
+# Build directories
+build/
+*.build/
+.build/
+.Build/
+*.Build/
+
+# Arduino IDE
+*.ino.elf
+*.ino.bin
+*.ino.eep
+*.ino.hex
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Library distribution
+*.zip
+*.tar.gz
+*.7z
+
+# Documentation
+docs/_build/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+
+# Dependency directories
+dependencies/
+lib/
+
+# Arduino CLI
+arduino-cli.yaml
+
+# Testing
+test_results/
+*.test
+
+# macOS
+*.DS_Store?
