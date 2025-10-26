@@ -1,8 +1,17 @@
-MicrotaskScheduler	KEYWORD1
-Scheduler	KEYWORD1
+# Class names (purple)
+MicrotaskQueue	KEYWORD1
+CallbackScheduler	KEYWORD1
+Task	KEYWORD1
+
+# Method names (brown) - camelCase version
 enqueue	KEYWORD2
 run	KEYWORD2
 enableTask	KEYWORD2
 disableTask	KEYWORD2
 deleteTask	KEYWORD2
 isTaskEnabled	KEYWORD2
+shouldRun	KEYWORD2
+getMaxTasks	KEYWORD2
+
+# Global instance
+Scheduler	KEYWORD1
