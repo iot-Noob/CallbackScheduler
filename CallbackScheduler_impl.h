@@ -1,11 +1,11 @@
-#ifndef SCHEDULER_IMPL_H
-#define SCHEDULER_IMPL_H
+#ifndef CALLBACK_SCHEDULER_IMPL_H
+#define CALLBACK_SCHEDULER_IMPL_H
 
-#include "scheduler.h"
+#include "CallbackScheduler.h"
 
 // Template implementations
 template<typename F>
-MicrotaskQueue<F>::MicrotaskQueue() : MAX_TASKS(getMaxTasks()) {
+CallbackScheduler<F>::CallbackScheduler() : MAX_TASKS(getMaxTasks()) {
   if (Serial) {
     Serial.print("Max tasks configured: ");
     Serial.println(MAX_TASKS);
@@ -13,18 +13,18 @@ MicrotaskQueue<F>::MicrotaskQueue() : MAX_TASKS(getMaxTasks()) {
 }
 
 template<typename F>
-bool MicrotaskQueue<F>::shouldRun(unsigned long scheduled, unsigned long current) {
+bool CallbackScheduler<F>::shouldRun(unsigned long scheduled, unsigned long current) {
   return (current - scheduled) < 0x7FFFFFFFUL;
 }
 
 template<typename F>
-void MicrotaskQueue<F>::enqueue(F func, unsigned long delayMs, bool enable, bool run_forever) {
+void CallbackScheduler<F>::enqueue(F func, unsigned long delayMs, bool enable, bool run_forever) {
   unsigned long now = millis();
   int tts = tasks.size();
   
   if(tts >= MAX_TASKS) {
     if(Serial) {
-      Serial.println("Task size exceeded");  // Fixed typo
+      Serial.println("Task size exceeded");
     }
     return;
   }
@@ -40,7 +40,7 @@ void MicrotaskQueue<F>::enqueue(F func, unsigned long delayMs, bool enable, bool
 
 template<typename F>
 template<typename... Args>
-void MicrotaskQueue<F>::run(Args... args) {
+void CallbackScheduler<F>::run(Args... args) {
   unsigned long now = millis();
   if (tasks.size() == 0) return;
 
@@ -71,7 +71,7 @@ void MicrotaskQueue<F>::run(Args... args) {
 
 // Other method implementations...
 template<typename F>
-bool MicrotaskQueue<F>::enable_task(int index) {
+bool CallbackScheduler<F>::enable_task(int index) {
   if (index < 0 || index >= tasks.size()) {
     if (Serial) Serial.print("❌ enable_task: Index out of range: "); Serial.println(index);
     return false;
@@ -82,7 +82,7 @@ bool MicrotaskQueue<F>::enable_task(int index) {
 }
 
 template<typename F>
-bool MicrotaskQueue<F>::disable_task(int index) {
+bool CallbackScheduler<F>::disable_task(int index) {
   if (index < 0 || index >= tasks.size()) {
     if (Serial) Serial.print("❌ disable_task: Index out of range: "); Serial.println(index);
     return false;
@@ -93,7 +93,7 @@ bool MicrotaskQueue<F>::disable_task(int index) {
 }
 
 template<typename F>
-bool MicrotaskQueue<F>::delete_task(int index) {
+bool CallbackScheduler<F>::delete_task(int index) {
   if (index < 0 || index >= tasks.size()) {
     if (Serial) Serial.print("❌ delete_task: Index out of range: "); Serial.println(index);
     return false;
@@ -106,13 +106,13 @@ bool MicrotaskQueue<F>::delete_task(int index) {
 }
 
 template<typename F>
-bool MicrotaskQueue<F>::is_task_enable(int index) {
+bool CallbackScheduler<F>::is_task_enable(int index) {
   if (index < 0 || index >= tasks.size()) return false;
   return tasks.get(index)->enabled;
 }
 
 template<typename F>
-MicrotaskQueue<F>::~MicrotaskQueue() {
+CallbackScheduler<F>::~CallbackScheduler() {
   if (Serial) {
     Serial.print("🧹 Destructor cleaning ");
     Serial.print(tasks.size());

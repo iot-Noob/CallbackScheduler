@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_H
-#define SCHEDULER_H
+#ifndef CALLBACK_SCHEDULER_H
+#define CALLBACK_SCHEDULER_H
 
 #include <LinkedList.h>
 #include <Arduino.h>
@@ -17,15 +17,15 @@ struct Task {
   unsigned long fix_delay;
 };
 
-// MicrotaskQueue class declaration
+// CallbackScheduler class declaration
 template<typename F>
-class MicrotaskQueue {
+class CallbackScheduler {
 private:
   LinkedList<Task<F>*> tasks;
   const int MAX_TASKS;
 
 public:
-  MicrotaskQueue();
+  CallbackScheduler();
   bool shouldRun(unsigned long scheduled, unsigned long current);
   void enqueue(F func, unsigned long delayMs = 0, bool enable = true, bool run_forever = false);
   
@@ -36,10 +36,10 @@ public:
   bool disable_task(int index);
   bool delete_task(int index);
   bool is_task_enable(int index);
-  ~MicrotaskQueue();
+  ~CallbackScheduler();
 };
 
-// 🔥 TEMPLATE IMPLEMENTATIONS MUST BE IN HEADER!
-#include "scheduler_impl.h"
+// Include template implementations
+#include "CallbackScheduler_impl.h"
 
 #endif
