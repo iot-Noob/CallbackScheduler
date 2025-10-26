@@ -1,101 +1,82 @@
-/*
-  MicrotaskScheduler - Interactive Control
-  Control tasks dynamically via Serial commands
-*/
+#include <CallbackScheduler.h>
 
-#include <MicrotaskScheduler.h>
+CallbackScheduler<void(*)()> scheduler;
+int taskCount = 0;
 
-bool task2Enabled = true;
-bool task3Enabled = true;
-
-void task1() {
-  Serial.println("⏰ Task 1 - Running every 1s");
+void createTask(int id) {
+  scheduler.enqueue([id]() {
+    Serial.print("Task ");
+    Serial.print(id);
+    Serial.print(" executed at: ");
+    Serial.println(millis());
+  }, 1000, true, true); // Run every second forever
 }
 
-void task2() {
-  Serial.println("🎯 Task 2 - Running every 2s");
-}
-
-void task3() {
-  Serial.println("⭐ Task 3 - Running every 3s");
-}
-
-void printHelp() {
-  Serial.println();
-  Serial.println("🎮 Interactive Controls:");
-  Serial.println("1 - Enable/Disable Task 2");
-  Serial.println("2 - Enable/Disable Task 3"); 
-  Serial.println("d - Delete Task 3");
-  Serial.println("s - Show task status");
-  Serial.println("h - Show this help");
-  Serial.println();
-}
-
-void showStatus() {
-  Serial.println();
-  Serial.println("📊 Task Status:");
-  Serial.println("Task 1: 🟢 ALWAYS RUNNING");
-  Serial.print("Task 2: ");
-  Serial.println(task2Enabled ? "🟢 ENABLED" : "🔴 DISABLED");
-  Serial.print("Task 3: ");
-  Serial.println(task3Enabled ? "🟢 ENABLED" : "🔴 DISABLED");
-  Serial.println();
+void listTasks() {
+  Serial.println("\n=== Current Tasks ===");
+  for(int i = 0; i < 5; i++) { // Assuming max 5 tasks for demo
+    if(scheduler.is_task_enable(i)) {
+      Serial.print("Task ");
+      Serial.print(i);
+      Serial.println(": 🟢 ENABLED");
+    }
+  }
+  Serial.println("=====================");
 }
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
-  
-  Serial.println("🎮 MicrotaskScheduler Interactive Demo");
-  Serial.println("======================================");
-  
-  // Schedule tasks
-  Scheduler.enqueue(task1, 1000, true, true);  // Always running
-  Scheduler.enqueue(task2, 2000, true, true);  // Controllable
-  Scheduler.enqueue(task3, 3000, true, true);  // Controllable
-  
-  printHelp();
-  showStatus();
+  Serial.begin(115200);
+  Serial.println("CallbackScheduler Interactive Control Demo");
+  Serial.println("Commands:");
+  Serial.println("  'c' - Create new task");
+  Serial.println("  'l' - List all tasks");
+  Serial.println("  'd0' - Disable task 0");
+  Serial.println("  'e0' - Enable task 0");
+  Serial.println("  'x0' - Delete task 0");
+  Serial.println("  's' - Show task status");
 }
 
 void loop() {
-  Scheduler.run();
+  scheduler.run();
   
-  // Handle Serial commands
-  if (Serial.available()) {
-    char command = Serial.read();
+  // Handle serial commands
+  if(Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
     
-    switch(command) {
-      case '1':
-        task2Enabled = !task2Enabled;
-        Scheduler.enableTask(1); // Enable/disable task at index 1
-        Serial.println(task2Enabled ? "🟢 Task 2 ENABLED" : "🔴 Task 2 DISABLED");
-        break;
-        
-      case '2':
-        task3Enabled = !task3Enabled;
-        Scheduler.enableTask(2); // Enable/disable task at index 2
-        Serial.println(task3Enabled ? "🟢 Task 3 ENABLED" : "🔴 Task 3 DISABLED");
-        break;
-        
-      case 'd':
-        Scheduler.deleteTask(2);
-        Serial.println("🗑️ Task 3 DELETED");
-        task3Enabled = false;
-        break;
-        
-      case 's':
-        showStatus();
-        break;
-        
-      case 'h':
-        printHelp();
-        break;
-        
-      default:
-        Serial.println("❓ Unknown command. Press 'h' for help.");
+    if(command == "c") {
+      createTask(taskCount++);
+      Serial.println("New task created!");
+    }
+    else if(command == "l") {
+      listTasks();
+    }
+    else if(command == "s") {
+      Serial.print("Total tasks created: ");
+      Serial.println(taskCount);
+    }
+    else if(command.startsWith("d")) {
+      int taskId = command.substring(1).toInt();
+      if(scheduler.disable_task(taskId)) {
+        Serial.print("Disabled task ");
+        Serial.println(taskId);
+      }
+    }
+    else if(command.startsWith("e")) {
+      int taskId = command.substring(1).toInt();
+      if(scheduler.enable_task(taskId)) {
+        Serial.print("Enabled task ");
+        Serial.println(taskId);
+      }
+    }
+    else if(command.startsWith("x")) {
+      int taskId = command.substring(1).toInt();
+      if(scheduler.delete_task(taskId)) {
+        Serial.print("Deleted task ");
+        Serial.println(taskId);
+      }
     }
   }
   
-  delay(10);
+  delay(50);
 }

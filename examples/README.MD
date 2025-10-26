@@ -1,40 +1,42 @@
-# **MicrotaskScheduler**
+# **CallbackScheduler**
 A lightweight, memory-safe task scheduler for Arduino that automatically detects your board and configures optimal task limits. Perfect for IoT projects, robotics, and embedded systems requiring reliable task scheduling.
+
 ### **🚀 Features**
 - 🤖 Automatic Board Detection - Works with 50+ Arduino boards out of the box
-
 - 🛡️ Memory-Safe - Prevents heap fragmentation and memory exhaustion
-
 - ⏰ Millis Rollover Protection - Handles 49-day timer wrap-around correctly
-
 - 🔧 Template-Based - Flexible API supporting lambdas and function pointers
-
 - 📊 Resource Management - Automatic cleanup and bounds checking
-
 - 🎯 Cross-Platform - Works on AVR, ESP8266, ESP32, ARM, and RP2040
+
 ### **📋 Supported Boards**
 | **Board Family**       | **RAM**     | **Max Tasks** | **Notes**                          |
-|-------------------------|-------------|----------------|------------------------------------|
-| ATtiny85/45/25         | 256–512 B   | 3              | Minimal memory usage               |
-| Arduino UNO / Nano      | 2 KB        | 8              | Classic AVR boards                 |
-| Arduino Mega            | 8 KB        | 30             | Large AVR projects                 |
-| ESP8266                 | 80 KB       | 50             | IoT applications                   |
-| ESP32                   | 520 KB      | 100+           | High-performance projects          |
-| Arduino Zero            | 32 KB       | 40             | ARM-based boards                   |
-| Raspberry Pi Pico       | 264 KB      | 60             | RP2040 platform                    |
-| *—*                     | *—*         | *—*            | *Full board detection list covers 50+ variants with automatic fallbacks* |
+|------------------------|-------------|---------------|------------------------------------|
+| ATtiny85/45/25         | 256–512 B   | 3             | Minimal memory usage               |
+| Arduino UNO / Nano     | 2 KB        | 8             | Classic AVR boards                 |
+| Arduino Mega           | 8 KB        | 30            | Large AVR projects                 |
+| ESP8266                | 80 KB       | 50            | IoT applications                   |
+| ESP32                  | 520 KB      | 100+          | High-performance projects          |
+| Arduino Zero           | 32 KB       | 40            | ARM-based boards                   |
+| Raspberry Pi Pico      | 264 KB      | 60            | RP2040 platform                    |
+| *—*                    | *—*         | *—*           | *Full board detection list covers 50+ variants with automatic fallbacks* |
+
 ### **🔧 Installation**
 #### **Arduino IDE**
 1. Download the latest release
-2. In Arduino IDE: ```Sketch → Include Library → Add .ZIP Library```
-3. Select the downloaded  ZIP file
+2. In Arduino IDE: `Sketch → Include Library → Add .ZIP Library`
+3. Select the downloaded ZIP file
+
+#### **PlatformIO**
 ```ini
 lib_deps =
-    https://github.com/yourusername/MicrotaskScheduler.git
+    https://github.com/yourusername/CallbackScheduler.git
 ```
 ### **💡 Quick Start**
 ```cpp
-#include <MicrotaskScheduler.h>
+#include <CallbackScheduler.h>
+
+CallbackScheduler<void(*)()> scheduler;
 
 void blinkLed() {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
@@ -49,12 +51,12 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   
   // Schedule tasks
-  Scheduler.enqueue(blinkLed, 500, true, true);    // Blink every 500ms
-  Scheduler.enqueue(printMessage, 1000, true, true); // Print every second
+  scheduler.enqueue(blinkLed, 500, true, true);    // Blink every 500ms
+  scheduler.enqueue(printMessage, 1000, true, true); // Print every second
 }
 
 void loop() {
-  Scheduler.run();  // Keep this in your main loop
+  scheduler.run();  // Keep this in your main loop
   delay(10);
 }
 ```
@@ -62,38 +64,38 @@ void loop() {
 #### **Basic Scheduling**
 ```cpp
 // Schedule a one-time task
-Scheduler.enqueue(taskFunction, 5000);  // Runs once after 5 seconds
+scheduler.enqueue(taskFunction, 5000);  // Runs once after 5 seconds
 
 // Schedule a recurring task  
-Scheduler.enqueue(taskFunction, 1000, true, true);  // Runs every second forever
+scheduler.enqueue(taskFunction, 1000, true, true);  // Runs every second forever
 
 // Schedule with initial disable
-Scheduler.enqueue(taskFunction, 1000, false, true);  // Disabled by default
+scheduler.enqueue(taskFunction, 1000, false, true);  // Disabled by default
 ```
 
 ### **Task Management**
 ```cpp
 // Enable/disable tasks
-Scheduler.enableTask(0);   // Enable task at index 0
-Scheduler.disableTask(1);  // Disable task at index 1
+scheduler.enable_task(0);   // Enable task at index 0
+scheduler.disable_task(1);  // Disable task at index 1
 
 // Delete tasks
-Scheduler.deleteTask(2);   // Remove task at index 2
+scheduler.delete_task(2);   // Remove task at index 2
 
 // Check task status
-bool enabled = Scheduler.isTaskEnabled(0);  // Check if task is enabled
+bool enabled = scheduler.is_task_enable(0);  // Check if task is enabled
 ```
 ### **Advanced Usage**
 ```cpp
 // Using lambdas with capture
 int counter = 0;
-Scheduler.enqueue([&counter]() {
+scheduler.enqueue([&counter]() {
   Serial.print("Counter: ");
   Serial.println(counter++);
 }, 1000, true, true);
 
 // Parameterized tasks
-Scheduler.enqueue([]() {
+scheduler.enqueue([]() {
   someFunction("parameter", 42);
 }, 2000, true, false);
 
@@ -102,36 +104,40 @@ void chainedTask(int step) {
   Serial.print("Step ");
   Serial.println(step);
   if (step < 5) {
-    Scheduler.enqueue([step]() { chainedTask(step + 1); }, 500, true, false);
+    scheduler.enqueue([step]() { chainedTask(step + 1); }, 500, true, false);
   }
 }
 ```
 ### **🎯 Examples**
 #### **Basic LED Blinker**
 ```cpp
-#include <MicrotaskScheduler.h>
+#include <CallbackScheduler.h>
+
+CallbackScheduler<void(*)()> scheduler;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   
-  Scheduler.enqueue([]() {
+  scheduler.enqueue([]() {
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   }, 500, true, true);
 }
+
 void loop() {
-  Scheduler.run();
+  scheduler.run();
 }
 ```
 ### **Interactive Serial Control**
 ```cpp
-#include <MicrotaskScheduler.h>
+#include <CallbackScheduler.h>
 
+CallbackScheduler<void(*)()> scheduler;
 bool taskEnabled = true;
 
 void setup() {
   Serial.begin(9600);
   
-  Scheduler.enqueue([]() { 
+  scheduler.enqueue([]() { 
     Serial.println("Task running every 1 second"); 
   }, 1000, true, true);
   
@@ -139,32 +145,34 @@ void setup() {
 }
 
 void loop() {
-  Scheduler.run();
+  scheduler.run();
   
   if (Serial.available()) {
     char cmd = Serial.read();
     if (cmd == 't') {
       taskEnabled = !taskEnabled;
-      Scheduler.enableTask(0);
+      scheduler.enable_task(0);
       Serial.println(taskEnabled ? "Task enabled" : "Task disabled");
     }
     if (cmd == 's') {
       Serial.print("Task status: ");
-      Serial.println(Scheduler.isTaskEnabled(0) ? "ENABLED" : "DISABLED");
+      Serial.println(scheduler.is_task_enable(0) ? "ENABLED" : "DISABLED");
     }
   }
 }
 ```
 #### **Memory Management Demo**
 ```cpp
-#include <MicrotaskScheduler.h>
+#include <CallbackScheduler.h>
+
+CallbackScheduler<void(*)()> scheduler;
 
 void setup() {
   Serial.begin(9600);
   
   // The library automatically prevents memory exhaustion
   for (int i = 0; i < 50; i++) {
-    bool success = Scheduler.enqueue([i]() {
+    bool success = scheduler.enqueue([i]() {
       Serial.print("Task ");
       Serial.println(i);
     }, 1000, true, true);
@@ -179,7 +187,7 @@ void setup() {
 }
 
 void loop() {
-  Scheduler.run();
+  scheduler.run();
 }
 ```
 #### **🔍 How It Works**

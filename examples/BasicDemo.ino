@@ -1,49 +1,32 @@
-/*
-  MicrotaskScheduler - Basic Demo
-  Shows basic task scheduling with LED blinking and Serial output
-*/
+#include <CallbackScheduler.h>
 
-#include <MicrotaskScheduler.h>
+// Create a scheduler instance
+CallbackScheduler<void(*)()> scheduler;
 
-void blinkLed() {
-  static bool ledState = false;
-  digitalWrite(LED_BUILTIN, ledState);
-  ledState = !ledState;
-  Serial.println(ledState ? "🔵 LED ON" : "⚫ LED OFF");
+void task1() {
+  Serial.println("Task 1 executed");
 }
 
-void printHello() {
-  Serial.println("👋 Hello from scheduled task!");
-}
-
-void printCounter() {
-  static int counter = 0;
-  Serial.print("🔢 Counter: ");
-  Serial.println(counter++);
+void task2() {
+  Serial.println("Task 2 executed");
 }
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial); // Wait for Serial
+  Serial.begin(115200);
+  Serial.println("CallbackScheduler Basic Demo Started");
   
-  pinMode(LED_BUILTIN, OUTPUT);
+  // Schedule task1 to run once after 1000ms
+  scheduler.enqueue(task1, 1000, true, false);
   
-  Serial.println("🚀 MicrotaskScheduler Basic Demo");
-  Serial.println("=================================");
+  // Schedule task2 to run forever every 2000ms
+  scheduler.enqueue(task2, 2000, true, true);
   
-  // Schedule tasks
-  Scheduler.enqueue(blinkLed, 500, true, true);     // Blink LED every 500ms
-  Scheduler.enqueue(printHello, 2000, true, true);  // Print every 2 seconds
-  Scheduler.enqueue(printCounter, 1000, true, true); // Counter every 1 second
-  
-  Serial.println("✅ Tasks scheduled:");
-  Serial.println("   - LED blink every 500ms");
-  Serial.println("   - Hello message every 2s");
-  Serial.println("   - Counter every 1s");
-  Serial.println("🎯 Starting scheduler...");
+  Serial.println("Tasks scheduled:");
+  Serial.println("- Task 1: One-time after 1 second");
+  Serial.println("- Task 2: Repeating every 2 seconds");
 }
 
 void loop() {
-  Scheduler.run(); // Run the scheduler
+  scheduler.run();
   delay(10); // Small delay to prevent watchdog issues
 }

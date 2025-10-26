@@ -1,64 +1,80 @@
-/*
-  MicrotaskScheduler - Advanced Patterns
-  Shows one-time tasks, parameter passing, and complex scheduling
-*/
+#include <CallbackScheduler.h>
 
-#include <MicrotaskScheduler.h>
+// Scheduler for different types of callbacks
+CallbackScheduler<void(*)()> voidScheduler;
+CallbackScheduler<void(*)(int)> intScheduler;
+CallbackScheduler<void(*)(String)> stringScheduler;
 
-void oneTimeTask() {
-  Serial.println("🎯 ONE-TIME TASK - This runs only once!");
+void simpleTask() {
+  static int count = 0;
+  Serial.print("Simple task count: ");
+  Serial.println(count++);
 }
 
-void parameterizedTask(const char* message, int value) {
-  Serial.print("📨 ");
-  Serial.print(message);
-  Serial.print(" | Value: ");
+void parameterizedTask(int value) {
+  Serial.print("Parameterized task received: ");
   Serial.println(value);
 }
 
-void chainedTask(int step) {
-  Serial.print("⛓️ Chained Task - Step ");
-  Serial.println(step);
-  
-  // Schedule next step
-  if (step < 3) {
-    Scheduler.enqueue([step]() { chainedTask(step + 1); }, 1000, true, false);
-  }
+void stringTask(String message) {
+  Serial.print("String task: ");
+  Serial.println(message);
 }
 
+class TaskManager {
+private:
+  CallbackScheduler<void(*)()> classScheduler;
+  int instanceData = 100;
+
+public:
+  void start() {
+    // Capture 'this' in lambda to access instance data
+    classScheduler.enqueue([this]() {
+      Serial.print("Class method task, instance data: ");
+      Serial.println(instanceData);
+      instanceData += 10;
+    }, 1500, true, true);
+  }
+  
+  void run() {
+    classScheduler.run();
+  }
+};
+
+TaskManager taskManager;
+
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
+  Serial.begin(115200);
+  Serial.println("CallbackScheduler Advanced Patterns Demo");
   
-  Serial.println("🚀 MicrotaskScheduler Advanced Patterns");
-  Serial.println("=======================================");
+  // 1. Simple void function
+  voidScheduler.enqueue(simpleTask, 1000, true, true);
   
-  // Pattern 1: One-time task
-  Scheduler.enqueue(oneTimeTask, 3000, true, false);
-  Serial.println("✅ Scheduled one-time task (runs in 3s)");
+  // 2. Function with parameters
+  intScheduler.enqueue(parameterizedTask, 2000, true, true);
   
-  // Pattern 2: Parameterized tasks using lambdas
-  Scheduler.enqueue([]() { parameterizedTask("Hello from lambda", 42); }, 1000, true, false);
-  Scheduler.enqueue([]() { parameterizedTask("Another message", 100); }, 2000, true, false);
-  Serial.println("✅ Scheduled parameterized tasks");
-  
-  // Pattern 3: Task chaining
-  Scheduler.enqueue([]() { chainedTask(1); }, 4000, true, false);
-  Serial.println("✅ Scheduled chained tasks (starts in 4s)");
-  
-  // Pattern 4: Mixed recurring and one-time
-  Scheduler.enqueue([]() { 
-    static int counter = 0;
-    Serial.print("🔄 Recurring task run #");
+  // 3. Lambda with capture
+  int counter = 0;
+  voidScheduler.enqueue([&counter]() {
+    Serial.print("Lambda with capture, counter: ");
     Serial.println(counter++);
-  }, 500, true, true);
+  }, 3000, true, true);
   
-  Serial.println("✅ Scheduled recurring counter task");
-  Serial.println();
-  Serial.println("📊 Watch the Serial monitor for different patterns!");
+  // 4. String parameter function
+  stringScheduler.enqueue(stringTask, 4000, true, true);
+  
+  // 5. Class-based tasks
+  taskManager.start();
+  
+  Serial.println("All advanced pattern tasks scheduled!");
 }
 
 void loop() {
-  Scheduler.run();
-  delay(10);
+  // Run all schedulers
+  voidScheduler.run();
+  intScheduler.run(42); // Pass parameter for int tasks
+  stringScheduler.run("Hello World"); // Pass parameter for string tasks
+  taskManager.run();
+  
+  delay(50);
 }

@@ -1,49 +1,41 @@
-/*
-  MicrotaskScheduler - Memory Management Demo
-  Shows how the library handles memory limits automatically
-*/
+#include <CallbackScheduler.h>
 
-#include <MicrotaskScheduler.h>
+CallbackScheduler<void(*)()> scheduler;
 
-void memoryHeavyTask(int taskId) {
-  Serial.print("💾 Memory Task ");
-  Serial.print(taskId);
-  Serial.println(" executed");
+void memoryTask() {
+  Serial.print("Free memory: ");
+  Serial.println(freeMemory());
 }
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
+  Serial.begin(115200);
+  Serial.println("CallbackScheduler Memory Demo Started");
   
-  Serial.println("💾 MicrotaskScheduler Memory Demo");
-  Serial.println("=================================");
-  Serial.println("Testing automatic memory limits...");
-  Serial.println();
+  // Schedule memory monitoring task to run every 3 seconds
+  scheduler.enqueue(memoryTask, 3000, true, true);
   
-  // Try to add more tasks than the board can handle
-  int maxTasks = 20; // More than any board's limit
-  
-  for (int i = 0; i < maxTasks; i++) {
-    bool success = Scheduler.enqueue([i]() { memoryHeavyTask(i); }, 1000, true, true);
-    
-    if (success) {
-      Serial.print("✅ Task ");
-      Serial.print(i);
-      Serial.println(" scheduled");
-    } else {
-      Serial.print("🚫 Task ");
-      Serial.print(i);
-      Serial.println(" REJECTED - Memory limit reached");
-      Serial.println("💡 Library automatically protects your board from memory exhaustion!");
-      break;
-    }
+  // Add multiple tasks to demonstrate memory usage
+  for(int i = 0; i < 5; i++) {
+    scheduler.enqueue([]() {
+      Serial.println("Dummy task executed");
+    }, 5000 + (i * 1000), true, false);
   }
-  
-  Serial.println();
-  Serial.println("🎯 Scheduler running with optimized task count");
 }
 
 void loop() {
-  Scheduler.run();
-  delay(10);
+  scheduler.run();
+  delay(50);
 }
+
+// Helper function to check free memory (AVR specific)
+#ifdef __AVR__
+extern "C" char* __brkval;
+int freeMemory() {
+  char top;
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+}
+#else
+int freeMemory() {
+  return 0; // Placeholder for non-AVR boards
+}
+#endif
